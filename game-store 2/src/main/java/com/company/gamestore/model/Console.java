@@ -1,7 +1,7 @@
 package com.company.gamestore.model;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.Table;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -13,14 +13,18 @@ import java.math.BigDecimal;
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
-@Table(name="console")
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
+@Table(name = "console")
 public class Console {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "console_id")
     private Long id;
     private String model;
     private String manufacturer;
     private String memoryAmount;
     private String processor;
     private BigDecimal price;
-    private int quantity;
+    private long quantity;
 
 }

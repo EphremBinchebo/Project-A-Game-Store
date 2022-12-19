@@ -4,7 +4,10 @@ import com.company.gamestore.model.Tshirt;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
+
 @Repository
 public interface TShirtRepository extends JpaRepository<Tshirt, Long> {
-
+    List<Tshirt> findAllByColor(String color);
+    List<Tshirt> findAllBySize(String size);
 }
