@@ -14,8 +14,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.junit.Assert.*;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.*;
 
 @RunWith(SpringRunner.class)
 public class GameServiceLayerTest {
@@ -56,9 +55,114 @@ public class GameServiceLayerTest {
          GameViewModel foundGameViewModel = service.getGame(10L);
          assertEquals(newGame1,foundGameViewModel);
     }
+     @Test(expected = NullPointerException.class)
+     public void shouldFailWhenCreateGameNullTitle(){
+        GameViewModel newGame1 = new GameViewModel();
+         newGame1.setTitle("null");
+         newGame1.setEsrbRating("E10+");
+         newGame1.setDescription("New Game");
+         newGame1.setPrice(new BigDecimal("20.08"));
+         newGame1.setStudio("Sony");
+         newGame1.setQuantity(2);
+         newGame1 = service.createGame(newGame1);
+
+         GameViewModel newGame2 = service.getGame(10L);
+         assertEquals(newGame1, newGame2);
+     }
 
     @Test
     public void shouldUpdateGame(){
+        GameViewModel newGame3 = new GameViewModel();
+        newGame3.setTitle("Fort Lines");
+        newGame3.setEsrbRating("M");
+        newGame3.setDescription("Zombie shooter game");
+        newGame3.setPrice(new BigDecimal("37.99"));
+        newGame3.setStudio("Dolby Studios");
+        newGame3.setQuantity(3);
+        newGame3 = service.createGame(newGame3);
+
+        newGame3.setPrice(new BigDecimal("25.00"));
+        newGame3.setQuantity(4);
+        service.updateGame(newGame3);
+       verify(gameRepository, times(2)).save(any(Game.class));
+
+    }
+    @Test
+    public void shoudFindGameByEsrbRating(){
+        List<GameViewModel> gamesByEsrb = new ArrayList<>();
+
+        GameViewModel game1 = new GameViewModel();
+        game1.setTitle("Halo");
+        game1.setEsrbRating("E10+");
+        game1.setDescription("Puzzles and Math");
+        game1.setPrice(new BigDecimal("23.99"));
+        game1.setStudio("Xbox Game Studios");
+        game1.setQuantity(5);
+        game1 = service.createGame(game1);
+        gamesByEsrb.add(game1);
+
+        GameViewModel gameExtra = new GameViewModel();
+        gameExtra.setTitle("Tetris");
+        gameExtra.setEsrbRating("E10+");
+        gameExtra.setDescription("block puzzle game");
+        gameExtra.setPrice(new BigDecimal("10.99"));
+        gameExtra.setStudio("Dolby Studios");
+        gameExtra.setQuantity(9);
+        gameExtra = service.createGame(gameExtra);
+        gamesByEsrb.add(gameExtra);
+
+        List<GameViewModel> gvmFromService = service.getGameByEsrb("E10+");
+
+        assertEquals(gamesByEsrb, gvmFromService);
+
+    }
+    @Test
+    public void shouldGetAllGames(){
+        
+    }
+    @Test
+    public void shouldDeleteGame(){
+        GameViewModel game1 = new GameViewModel();
+        game1.setTitle("Halo");
+        game1.setEsrbRating("E10+");
+        game1.setDescription("Puzzles and Math");
+        game1.setPrice(new BigDecimal("23.99"));
+        game1.setStudio("Xbox Game Studios");
+        game1.setQuantity(5);
+        game1 = service.createGame(game1);
+        service.deleteGame(game1.getId());
+        verify(gameRepository).deleteById(any(Long.class));
+    }
+    @Test
+    public void shouldFindGameByTitle(){
+
+        List<GameViewModel> gvmList = new ArrayList<>();
+
+        GameViewModel game = new GameViewModel();
+        game.setTitle("Halo");
+        game.setEsrbRating("E10+");
+        game.setDescription("Puzzles and Math");
+        game.setPrice(new BigDecimal("23.99"));
+        game.setStudio("Xbox Game Studios");
+        game.setQuantity(5);
+        game = service.createGame(game);
+        gvmList.add(game);
+
+        GameViewModel game2 = new GameViewModel();
+        game2.setTitle("Fort Lines");
+        game2.setEsrbRating("M");
+        game2.setDescription("Zombie shooter game");
+        game2.setPrice(new BigDecimal("37.99"));
+        game2.setStudio("Dolby Studios");
+        game2.setQuantity(3);
+        game2 = service.createGame(game2);
+        gvmList.add(game2);
+
+        List<GameViewModel> gvmFromService = service.getGameByTitle("Halo");
+
+        //Test title with no games...
+        gvmFromService = service.getGameByTitle("Shalo");
+        assertEquals(gvmFromService.size(), 0);
 
     }
     private void setUpInvoiceRepositoryMock() {
@@ -274,49 +378,50 @@ public class GameServiceLayerTest {
     private void setUpGameRepositoryMock() {
         gameRepository = mock(GameRepository.class);
 
-        List<Game> allGames = new ArrayList<>();
-        List<Game> gamesByStudio= new ArrayList<>();
+        List<Game> gamesByEsrb = new ArrayList<>();
         List<Game> gamesByTitle = new ArrayList<>();
-        List<Game> gameByEsrbRating = new ArrayList<>();
+        List<Game> gamesByStudio = new ArrayList<>();
+        List<Game> allGames = new ArrayList<>();
 
+        //No ID in this "game" object
         Game newGame1 = new Game();
-        newGame1.setTitle("PlayStation");
+        newGame1.setTitle("Halo");
         newGame1.setEsrbRating("E10+");
-        newGame1.setDescription("New Game");
-        newGame1.setPrice(new BigDecimal("20.08"));
-        newGame1.setStudio("Sony");
-        newGame1.setQuantity(2);
+        newGame1.setDescription("Puzzles and Math");
+        newGame1.setPrice(new BigDecimal("23.99"));
+        newGame1.setStudio("Xbox Game Studios");
+        newGame1.setQuantity(5);
 
         Game savedGame1 = new Game();
-        savedGame1.setId(10L);
-        savedGame1.setTitle("PlayStation");
+        savedGame1.setId(32L);
+        savedGame1.setTitle("Halo");
         savedGame1.setEsrbRating("E10+");
-        savedGame1.setDescription("New Game");
-        savedGame1.setPrice(new BigDecimal("20.08"));
-        savedGame1.setStudio("Sony");
-        savedGame1.setQuantity(2);
-
-        gameByEsrbRating.add(savedGame1);
+        savedGame1.setDescription("Puzzles and Math");
+        savedGame1.setPrice(new BigDecimal("23.99"));
+        savedGame1.setStudio("Xbox Game Studios");
+        savedGame1.setQuantity(5);
+        gamesByEsrb.add(savedGame1);
+        gamesByTitle.add(savedGame1);
         allGames.add(savedGame1);
 
         Game newGame2 = new Game();
-        newGame2.setTitle("FIFA2020");
-        newGame2.setEsrbRating("M");
-        newGame2.setDescription("New Game2");
-        newGame2.setPrice(new BigDecimal("20.08"));
-        newGame2.setStudio("Sony");
-        newGame2.setQuantity(2);
+        newGame2.setTitle("Tetris");
+        newGame2.setEsrbRating("E10+");
+        newGame2.setDescription("block puzzle game");
+        newGame2.setPrice(new BigDecimal("10.99"));
+        newGame2.setStudio("Dolby Studios");
+        newGame2.setQuantity(9);
 
         Game savedGame2 = new Game();
-        savedGame2.setId(5L);
-        savedGame2.setTitle("FIFA2020");
-        savedGame2.setEsrbRating("M");
-        savedGame2.setDescription("New Game2");
-        savedGame2.setPrice(new BigDecimal("20.08"));
-        savedGame2.setStudio("Sony");
-        savedGame2.setQuantity(2);
-
-        gameByEsrbRating.add(savedGame2);
+        savedGame2.setId(25L);
+        savedGame2.setTitle("Tetris");
+        savedGame2.setEsrbRating("E10+");
+        savedGame2.setDescription("block puzzle game");
+        savedGame2.setPrice(new BigDecimal("10.99"));
+        savedGame2.setStudio("Dolby Studios");
+        savedGame2.setQuantity(9);
+        gamesByEsrb.add(savedGame2);
+        gamesByStudio.add(savedGame2);
         allGames.add(savedGame2);
 
         Game newGame3 = new Game();
@@ -341,14 +446,16 @@ public class GameServiceLayerTest {
 
         doReturn(savedGame1).when(gameRepository).save(newGame1);
         doReturn(Optional.of(savedGame3)).when(gameRepository).findById(60L);
-        doReturn(Optional.of(savedGame2)).when(gameRepository).findById(5L);
-        doReturn(Optional.of(savedGame1)).when(gameRepository).findById(10L);
-        doReturn(savedGame1).when(gameRepository).save(newGame1);
+        doReturn(Optional.of(savedGame1)).when(gameRepository).findById(32L);
+        doReturn(Optional.of(savedGame2)).when(gameRepository).findById(25L);
         doReturn(savedGame2).when(gameRepository).save(newGame2);
+        doReturn(savedGame3).when(gameRepository).save(newGame3);
 
-        doReturn(gameByEsrbRating).when(gameRepository).findAllByEsrbRating("M");
-        doReturn(gamesByStudio).when(gameRepository).findAllByStudio("Sony");
-        doReturn(gamesByTitle).when(gameRepository).findAllByTitle("FortLines");
+        doReturn(gamesByEsrb).when(gameRepository).findAllByEsrbRating("E10+");
+        doReturn(gamesByStudio).when(gameRepository).findAllByStudio("Dolby Studios");
+        doReturn(gamesByTitle).when(gameRepository).findAllByTitle("Halo");
+        doReturn(allGames).when(gameRepository).findAll();
+
     }
 
     private void setUpConsoleRepositoryMock() {
